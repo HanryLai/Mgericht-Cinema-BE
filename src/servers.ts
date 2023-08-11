@@ -1,5 +1,5 @@
 require('dotenv').config();
-const server = require('./v1/app.ts');
+const server = require('./app/app.ts');
 const port =  process.env.PORT;
 
 server.listen(port, () => {

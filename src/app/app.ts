@@ -8,21 +8,21 @@ const bodyParser = require('body-parser');
 const app = express();
 const cookieParser = require('cookie-parser');
 
-/* app.connect(require('./database/connectdb')); */
+app.connect(require('./databases/connection'));
 // use middleware
 app.use(helmet());
 app.use(morgan('combined'));
-/* app.use(
+app.use(
    cors({
       credentials: true,
       origin: ['http://localhost:4200'],
    })
-); */
+);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 // routers
-app.use(require('./routes/index.router'));
+/* app.use(require('./routes/index.router')); */
 
 // Error Handling Middleware called
 app.use((req: Request, res: Response, next: NextFunction) => {
