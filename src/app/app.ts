@@ -1,6 +1,6 @@
 import helmet from 'helmet';
 import { Request, Response, NextFunction } from 'express';
-import { getErrorMessage } from '@/utils/err/errorMessage'
+import { getErrorMessage } from '../app/utils/err/errorMessage'
 const morgan = require('morgan');
 const express = require('express');
 const cors = require('cors');
