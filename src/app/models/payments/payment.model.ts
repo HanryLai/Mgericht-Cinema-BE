@@ -7,11 +7,24 @@ export interface PaymentProps {
     amount: number;
 }
 
-export const PaymentSchema: Schema<PaymentProps> = new Schema({
-    booking_id: { type: Schema.Types.ObjectId, ref: 'Booking' },
-    payment_option: { type: String, enum: Object.values(PaymentOptions), default: PaymentOptions.CASH, required: true },
-    payment_date: { type: Date, default: Date.now, required: true },
-    amount: { type: Number, default: 0, required: true },
-});
+export const PaymentSchema: Schema<PaymentProps> = new Schema(
+    {
+        booking_id: { type: Schema.Types.ObjectId, ref: 'Booking' },
+        payment_option: {
+            type: String,
+            enum: Object.values(PaymentOptions),
+            default: PaymentOptions.CASH,
+            required: true,
+        },
+        payment_date: { type: Date, default: Date.now, required: true },
+        amount: { type: Number, default: 0, required: true },
+    },
+    {
+        timestamps: true,
+        toJSON: { virtuals: true },
+        toObject: { virtuals: true },
+        collection: 'Payment',
+    }
+);
 
 export const PaymentModel: Model<PaymentOptions> = new Model('Payment', PaymentSchema);

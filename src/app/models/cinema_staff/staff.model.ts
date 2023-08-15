@@ -8,12 +8,20 @@ export interface CinemaStaffProps {
     created_at: Date;
 }
 
-export const CinemaStaffSchema: Schema<CinemaStaffProps> = new Schema({
-    user_id: { type: Schema.Types.ObjectId, ref: 'User' },
-    cinema_id: { type: Schema.Types.ObjectId, ref: 'Cinema' },
-    role: { type: String, required: true },
-    schedule: { type: String, required: true },
-    created_at: { type: Date, default: Date.now },
-});
+export const CinemaStaffSchema: Schema<CinemaStaffProps> = new Schema(
+    {
+        user_id: { type: Schema.Types.ObjectId, ref: 'User' },
+        cinema_id: { type: Schema.Types.ObjectId, ref: 'Cinema' },
+        role: { type: String, required: true },
+        schedule: { type: String, required: true },
+        created_at: { type: Date, default: Date.now },
+    },
+    {
+        timestamps: true,
+        toJSON: { virtuals: true },
+        toObject: { virtuals: true },
+        collection: 'CinemaStaff',
+    }
+);
 
 export const CinemaStaffModel: Model<CinemaStaffProps> = new Model('CinemaStaff', CinemaStaffSchema);
