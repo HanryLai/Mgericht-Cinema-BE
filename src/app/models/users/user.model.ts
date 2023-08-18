@@ -6,19 +6,19 @@ export enum Role {
     STAFF = 'staff',
 }
 export interface UserProps {
-    username: String;
-    password: String;
-    email: String;
-    address: String[];
+    username: string;
+    password: string;
+    email: string;
+    address: string[];
     phone: number;
     create_at: Date;
     last_login: Date;
     role: Role; // optional role 'admin', 'customer' or 'staff'
     loyalty_points: Number;
     is_verified: Boolean;
-    reset_password_token: String;
+    reset_password_token: string;
     reset_password_expires: Date;
-    verificationToken: String | null;
+    verificationToken: string | null;
 }
 export const UserSchema: Schema<UserProps> = new Schema(
     {
