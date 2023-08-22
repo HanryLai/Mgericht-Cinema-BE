@@ -22,7 +22,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 // routers
-app.use(require('../app/routes/index.router'));
+app.use(require('./routes/index.routes'));
 
 // Error Handling Middleware called
 app.use((req: Request, res: Response, next: NextFunction) => {

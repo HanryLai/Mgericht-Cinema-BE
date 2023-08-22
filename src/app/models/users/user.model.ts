@@ -35,7 +35,6 @@ export const UserSchema: Schema<UserProps> = new Schema(
             required: true,
             trim: true,
             unique: true,
-            lowercase: true,
             minlength: 8,
         },
         email: { type: String, required: true, unique: true },
