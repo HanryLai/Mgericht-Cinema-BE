@@ -10,7 +10,7 @@ export interface UserProps {
     password: string;
     email: string;
     address: string[];
-    phone: number;
+    phone: string;
     create_at: Date;
     last_login: Date;
     role: Role; // optional role 'admin', 'customer' or 'staff'
@@ -39,7 +39,7 @@ export const UserSchema: Schema<UserProps> = new Schema(
         },
         email: { type: String, required: true, unique: true },
         address: { type: [String], required: true },
-        phone: { type: Number, required: true },
+        phone: { type: String, required: true },
         create_at: { type: Date, default: Date.now },
         last_login: { type: Date, default: Date.now },
         role: { type: String, enum: Object.values(Role), default: Role.CUSTOMER, required: true },

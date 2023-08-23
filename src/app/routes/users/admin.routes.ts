@@ -11,4 +11,5 @@ router.get('/admin/login', AdminController.loginAdmin);
 router.delete('/admin/:id/delete', authMiddleware, isAdmin, AdminController.deleteUser);
 // [PUT] update user with di
 router.put('/admin/:id/update', authMiddleware, isAdmin, AdminController.updateUser);
+//
 module.exports = router;

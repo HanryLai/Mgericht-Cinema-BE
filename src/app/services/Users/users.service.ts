@@ -145,6 +145,7 @@ export const changePassword = async (id: string, token: string, password: string
     const newToken = generateToken(id, foundUser.role);
     foundUser.password = hasdedPassword;
     foundUser.verificationToken = newToken;
+    foundUser.verificationToken = null;
     await foundUser.save();
     let user: userWithOutPassword = { ...foundUser.toObject() };
     delete user.password;
