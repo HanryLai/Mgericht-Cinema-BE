@@ -6,10 +6,10 @@ debug('ts-express:server');
 const port = normalizePort(process.env.PORT_DEV || 8080);
 App.set('port', port);
 const server = http.createServer(App);
-server.listen(port);
+server.listen(port, () => {
+   onlisten();
+});
 server.on('error', onError);
-server.on('onListening', onlisten);
-
 
 function normalizePort(value: number | string): number | string | boolean {
    let port: number = typeof value === 'string' ? parseInt(value, 10) : value;
@@ -30,7 +30,7 @@ function onError(error: NodeJS.ErrnoException): void {
          console.error(`${bind} is already in use`);
          process.exit(1);
          break;
-      default:
+      default: 
          throw error;
    }
 }
@@ -41,5 +41,3 @@ function onlisten(): void {
    debug(`Listen on ${bind}`);
    console.log(`Listen on ${bind}`);
 }
-
-

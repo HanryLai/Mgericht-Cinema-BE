@@ -1,6 +1,6 @@
 require('dotenv').config();
 
-import express from 'express';
+import express, { Request, Response } from 'express';
 import logger from 'morgan';
 import * as bodyParser from 'body-parser';
 import cors from 'cors';
@@ -14,7 +14,7 @@ class App {
       this.middleware();
       this.routes();
    }
- 
+
    private middleware(): void {
       this.express.use(cors({ origin: 'http://localhost8080' }));
       this.express.use(bodyParser.json());
@@ -24,7 +24,7 @@ class App {
    // configure API endpoint
    private routes(): void {
       let routes = express.Router();
-      routes.get('/api/', (req, res) => {
+      routes.get('/api/', (req: Request, res: Response) => {
          res.json({
             message: 'hello world',
          });
