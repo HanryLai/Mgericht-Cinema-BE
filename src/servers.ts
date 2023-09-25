@@ -3,6 +3,13 @@ import debug from 'debug';
 import App from './app';
 
 debug('ts-express:server');
+const port = normalizePort(process.env.PORT_DEV || 8080);
+App.set('port', port);
+const server = http.createServer(App);
+server.listen(port);
+server.on('error', onError);
+server.on('onListening', onlisten);
+
 
 function normalizePort(value: number | string): number | string | boolean {
    let port: number = typeof value === 'string' ? parseInt(value, 10) : value;
@@ -34,9 +41,5 @@ function onlisten(): void {
    debug(`Listen on ${bind}`);
    console.log(`Listen on ${bind}`);
 }
-const port = normalizePort(process.env.PORT_DEV || 8080);
 
-const server = http.createServer(App);
-server.listen(port);
-server.on('error', onError);
-server.on('onListening', onlisten);
+
