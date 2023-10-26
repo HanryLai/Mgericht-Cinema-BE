@@ -4,6 +4,8 @@ import express, { Request, Response } from 'express';
 import logger from 'morgan';
 import * as bodyParser from 'body-parser';
 import cors from 'cors';
+import { connect } from './connectDb/connectdb.postgres';
+// import { error } from 'console';
 
 class App {
    // ref to Express instance
@@ -13,6 +15,7 @@ class App {
       this.express = express();
       this.middleware();
       this.routes();
+      this.connectDb();
    }
 
    private middleware(): void {
@@ -24,13 +27,20 @@ class App {
    // configure API endpoint
    private routes(): void {
       let routes = express.Router();
-      routes.get('/api/', (req: Request, res: Response) => {
+      routes.get('/api/', (_req: Request, res: Response) => {
          res.json({
             message: 'hello world',
          });
          console.log('test successful');
       });
-      console.log('test successful');
+      console.log('test successfully');
+   }
+
+   private connectDb(): void {
+      connect
+         .initialize()
+         .then(() => console.log('Connect postgres successfully'))
+         .catch((_error) => console.log(`connect postgres fail : ${_error}`));
    }
 }
 export default new App().express;
