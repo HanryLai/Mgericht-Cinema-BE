@@ -1,6 +1,6 @@
 import { DataSource } from 'typeorm';
 
-import * as Model_Postgres from '../model';
+import * as Model_Postgres from '../models';
 
 export const connect = new DataSource({
    type: 'postgres',
@@ -16,7 +16,6 @@ export const connect = new DataSource({
       Model_Postgres.TypeScreen,
       Model_Postgres.Detail_Information,
       Model_Postgres.Event,
-      Model_Postgres.LikeOrDislike,
       Model_Postgres.Movie,
       Model_Postgres.Order,
       Model_Postgres.OrderDetailService,
@@ -36,5 +35,5 @@ export const connect = new DataSource({
       Model_Postgres.Account,
    ],
    synchronize: true,
-   logging: true,
+   // logging: true,
 });

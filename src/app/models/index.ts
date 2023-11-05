@@ -1,7 +1,6 @@
 import { Account } from './Account/account.model';
 import { Address } from './Address/address.model';
 import { Detail_Information } from './Detail_Information/detail_information.model';
-import { LikeOrDislike } from './LikeOrDislike/likeOrDislike.model';
 import { Movie } from './Movie/movie.model';
 import { Order } from './Order/order.model';
 import { OrderDetailService } from './OrderDetailService/orderDetailService.model';
@@ -25,7 +24,6 @@ export {
    Theater,
    TypeScreen,
    Detail_Information,
-   LikeOrDislike,
    Movie,
    Event,
    Order,

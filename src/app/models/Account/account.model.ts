@@ -1,9 +1,10 @@
-import { IsInt, Length, MaxLength, Min, MinLength } from 'class-validator';
+import { IsInt, Length, MaxLength, Min, MinLength, min } from 'class-validator';
 import {
    Column,
    CreateDateColumn,
    Entity,
    JoinColumn,
+   ObjectId,
    OneToOne,
    PrimaryGeneratedColumn,
    UpdateDateColumn,
@@ -13,44 +14,42 @@ import { Detail_Information } from '../Detail_Information/detail_information.mod
 const MAX_LENGTH = 20;
 const MIN_LENGTH = 8;
 
+export enum Role_Account {
+   ADMIN = 'admin',
+   EMPLOYEE = 'employee',
+   CUSTOMER = 'customer',
+}
+
 @Entity('Account')
 // id_RoleAccount
 export class Account {
-   @PrimaryGeneratedColumn()
-   id: number;
+   // create id type uuid
+   @PrimaryGeneratedColumn('uuid')
+   id: ObjectId;
 
-   @Column()
+   @Column({
+      unique: true,
+   })
    @Length(MIN_LENGTH, MAX_LENGTH, {
-      message: 'username is not enough lsong or too long',
+      message: 'username is not enough long or too long',
    })
    username: string;
 
    @Column()
-   @MaxLength(MAX_LENGTH, {
-      message: 'password is too long',
-   })
-   @MinLength(MIN_LENGTH, {
-      message: 'password is not enough length',
-   })
    password: string;
 
    @Column({
-      default: 0,
+      nullable: true,
    })
-   @Min(0)
-   @IsInt()
    accumulated_Point: number;
 
    @Column({
-      default: 0,
+      nullable: true,
    })
-   @Min(0)
-   @IsInt()
    loyalty_Point: number;
 
    @Column({
-      type: 'timestamptz',
-      default: () => 'CURRENT_DATE',
+      nullable: true,
    })
    last_Login: Date;
 
@@ -71,9 +70,18 @@ export class Account {
    update_At: Date;
 
    // Foreign_Key
-   @OneToOne(() => Detail_Information)
+   @OneToOne(() => Detail_Information, {
+      nullable: true,
+   })
    @JoinColumn({
       name: 'id_Detail_Information',
    })
    id_Detail_Information: Detail_Information;
+
+   @Column({
+      type: 'enum',
+      enum: Role_Account,
+      default: Role_Account.CUSTOMER,
+   })
+   tmp_Role: Role_Account;
 }

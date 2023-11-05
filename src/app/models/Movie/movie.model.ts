@@ -1,4 +1,16 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+   Column,
+   CreateDateColumn,
+   Entity,
+   PrimaryGeneratedColumn,
+   UpdateDateColumn,
+} from 'typeorm';
+
+export enum Status_Enum {
+   NOW = 'now',
+   COMING = 'coming',
+   OFF = 'off',
+}
 
 @Entity('Movie')
 export class Movie {
@@ -31,4 +43,16 @@ export class Movie {
 
    @Column()
    poster_Url: string;
+
+   @Column({
+      type: 'enum',
+      enum: Status_Enum,
+   })
+   status: Status_Enum;
+
+   @CreateDateColumn()
+   create_At: Date;
+
+   @UpdateDateColumn()
+   update_At: Date;
 }

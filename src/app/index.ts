@@ -1,8 +1,8 @@
 require('dotenv').config();
 
-import express, { Request, Response } from 'express';
+import express from 'express';
 import logger from 'morgan';
-import * as bodyParser from 'body-parser';
+var bodyParser = require('body-parser');
 import cors from 'cors';
 import { connect } from './connectDb/connectdb.postgres';
 // import { error } from 'console';
@@ -14,26 +14,19 @@ class App {
    constructor() {
       this.express = express();
       this.middleware();
-      this.routes();
       this.connectDb();
+      this.routes();
    }
 
    private middleware(): void {
       this.express.use(cors({ origin: 'http://localhost8080' }));
-      this.express.use(bodyParser.json());
       this.express.use(bodyParser.urlencoded({ extended: false }));
+      this.express.use(bodyParser.json());
       this.express.use(logger('dev'));
    }
-   // configure API endpoint
+   // configure RESTFUL API
    private routes(): void {
-      let routes = express.Router();
-      routes.get('/api/', (_req: Request, res: Response) => {
-         res.json({
-            message: 'hello world',
-         });
-         console.log('test successful');
-      });
-      console.log('test successfully');
+      this.express.use(require('./routers'));
    }
 
    private connectDb(): void {

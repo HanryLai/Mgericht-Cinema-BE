@@ -52,4 +52,9 @@ export class Service {
 
    @Column()
    image_Url: string;
+
+   @Column({
+      default: 0,
+   })
+   total_Quantity: number;
 }

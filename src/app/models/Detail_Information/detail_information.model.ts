@@ -1,3 +1,4 @@
+import { Max, Min } from 'class-validator';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('Detail_Information')
@@ -6,6 +7,7 @@ export class Detail_Information {
    id: number;
 
    @Column()
+   @Max(20)
    fullName: string;
 
    @Column()
@@ -17,7 +19,13 @@ export class Detail_Information {
    @Column()
    gender: Boolean;
 
-   @Column()
+   @Column({
+      unique: true,
+      length: 10,
+   })
+   @Min(10, {
+      message: 'Phone too short',
+   })
    phone: string;
 
    @Column({ unique: true })
