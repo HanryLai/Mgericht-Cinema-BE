@@ -76,12 +76,8 @@ export class Account {
    @JoinColumn({
       name: 'id_Detail_Information',
    })
-   id_Detail_Information: Detail_Information;
-
    @Column({
-      type: 'enum',
-      enum: Role_Account,
-      default: Role_Account.CUSTOMER,
+      nullable: true,
    })
-   tmp_Role: Role_Account;
+   id_Detail_Information: Detail_Information;
 }

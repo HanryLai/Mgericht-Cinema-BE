@@ -9,17 +9,19 @@ const router = Router();
 router.get('/login', Account.login);
 
 //logout account
-router.get('/logout');
+router.get('/logout', Account.logout);
 
 //get information of themselves after login
-router.get('/detail-information');
+router.get('/detail-information', Account.detail_Information);
 
 //get account of themselves after login
-router.get('/account');
+router.get('/my-Account', Account.account_me);
+
+router.get('/verify/:userId&&:subID', Account.verify);
 
 // [PUT/PATCH]
 //Update password account after login
-router.patch('/update-Password');
+router.patch('/update-Password', Account.updatePassword);
 
 //forget password, user cannot login account of them
 router.patch('/forget-password');

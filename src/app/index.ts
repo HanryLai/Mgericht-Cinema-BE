@@ -1,21 +1,25 @@
 require('dotenv').config();
 
-import express from 'express';
+import express, { ErrorRequestHandler, NextFunction, Request, Response } from 'express';
 import logger from 'morgan';
 var bodyParser = require('body-parser');
 import cors from 'cors';
-import { connect } from './connectDb/connectdb.postgres';
-// import { error } from 'console';
+import { ConnectDb } from './connectDb/connectdb.postgres';
+import { HttpResponse } from './domain/http/response';
+import { Code } from '../app/enum/Code.enum';
+import { Status } from '../app/enum/Status.enum';
 
 class App {
    // ref to Express instance
    public express: express.Application;
+
    // run configuration methods on the Express instance
    constructor() {
       this.express = express();
       this.middleware();
       this.connectDb();
       this.routes();
+      // this.handleError();
    }
 
    private middleware(): void {
@@ -28,12 +32,21 @@ class App {
    private routes(): void {
       this.express.use(require('./routers'));
    }
-
+   // config dbs and connect to dbs
    private connectDb(): void {
-      connect
-         .initialize()
-         .then(() => console.log('Connect postgres successfully'))
-         .catch((_error) => console.log(`connect postgres fail : ${_error}`));
+      new ConnectDb();
+      ConnectDb.setConnect();
+   }
+   // =>>>>>> Err, fix it
+   private handleError(): void {
+      this.express.use(
+         (err: ErrorRequestHandler, _req: Request, res: Response, _next: NextFunction) => {
+            console.log(err);
+            return res
+               .status(Code.OK)
+               .send(new HttpResponse(Code.OK, Status.OK, 'Login in with this account'));
+         },
+      );
    }
 }
 export default new App().express;

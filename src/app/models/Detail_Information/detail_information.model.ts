@@ -1,33 +1,52 @@
 import { Max, Min } from 'class-validator';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ObjectId, PrimaryGeneratedColumn } from 'typeorm';
+
+export interface Detail_Information_Interface {
+   id: ObjectId;
+   fullName?: string;
+   detail_address?: string;
+   birthday?: Date;
+   gender?: Boolean;
+   phone?: string;
+   email?: string;
+}
 
 @Entity('Detail_Information')
 export class Detail_Information {
-   @PrimaryGeneratedColumn()
-   id: number;
+   @PrimaryGeneratedColumn('uuid')
+   id: ObjectId;
 
-   @Column()
+   @Column({
+      nullable: true,
+   })
    @Max(20)
    fullName: string;
 
-   @Column()
+   @Column({
+      nullable: true,
+   })
    detail_address: string;
 
-   @Column()
+   @Column({
+      nullable: true,
+   })
    birthday: Date;
 
-   @Column()
+   @Column({
+      nullable: true,
+   })
    gender: Boolean;
 
    @Column({
       unique: true,
       length: 10,
+      nullable: true,
    })
    @Min(10, {
       message: 'Phone too short',
    })
    phone: string;
 
-   @Column({ unique: true })
+   @Column({ unique: true, nullable: true })
    email: string;
 }

@@ -1,6 +1,9 @@
 import { Account } from './Account/account.model';
 import { Address } from './Address/address.model';
-import { Detail_Information } from './Detail_Information/detail_information.model';
+import {
+   Detail_Information,
+   Detail_Information_Interface,
+} from './Detail_Information/detail_information.model';
 import { Movie } from './Movie/movie.model';
 import { Order } from './Order/order.model';
 import { OrderDetailService } from './OrderDetailService/orderDetailService.model';
@@ -17,13 +20,16 @@ import { Voucher } from './Voucher/voucher.model';
 import { WorkingTime } from './WorkingTime/workingTime.model';
 import { Screen } from './Screen/screen.model';
 import { Event } from './Event/event.model';
-
+import { Admin } from './Account_Role/admin.model';
+import { Customer } from './Account_Role/customer.model';
+import { Employee } from './Account_Role/employee.model';
 export {
    Account,
    Address,
    Theater,
    TypeScreen,
    Detail_Information,
+   Detail_Information_Interface,
    Movie,
    Event,
    Order,
@@ -38,4 +44,7 @@ export {
    TypeSeat,
    Voucher,
    WorkingTime,
+   Admin,
+   Customer,
+   Employee,
 };
