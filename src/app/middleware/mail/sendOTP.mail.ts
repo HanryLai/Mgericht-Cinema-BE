@@ -1,20 +1,18 @@
-import { isErr } from '../../constants/Err/isError';
+import { isErr } from '../../utils/Err/isError';
 import { SendEMail } from './sendEmail.mail';
-import { hashSync, compareSync } from 'bcrypt';
-import { v4 } from 'uuid';
 export class sendOTP {
-   private hashID: string;
-   constructor(recipient: string, subject: string, userId: string) {
+   private OTP: string;
+   constructor(recipient: string, subject: string) {
       try {
-         this.hashID = this.createOTP(userId);
+         this.OTP = this.createOTP();
          const sendEmail = new SendEMail(
             recipient,
             subject,
-            `<h1> Link confirm email  </h1>
-              <p> you must link <a href=${process.env.HOST}${process.env.PORT_DEV}/api/account/verify/${userId}&&${this.hashID}>here</a> to confirm email </p>
+            `<h1> OTP confirm email </h1>
+              <p>OTP CME-Cinema for your account is ${this.OTP}  </p>
          `,
          );
-         console.log(userId + ' hashCode =>>>' + this.hashID);
+         console.log(' hashCode =>>>' + this.OTP);
 
          if (isErr(sendEmail)) {
             throw sendEmail;
@@ -24,13 +22,13 @@ export class sendOTP {
       }
    }
 
-   private createOTP(userID: string): string {
-      // const hashID = hashSync(userID, parseInt(process.env.BCRYPT_SALT as string));
-      const hashID = v4() + userID;
-      return hashID;
+   private createOTP(): string {
+      const OTP = Math.floor(Math.random() * 100000) + '';
+
+      return OTP;
    }
 
    public getOTP(): string {
-      return this.hashID;
+      return this.OTP;
    }
 }

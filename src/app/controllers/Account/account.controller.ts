@@ -1,14 +1,14 @@
 import { NextFunction, Request, Response } from 'express';
 import * as accountService from '../../services/Account/account.service';
-import { isErr } from '../../constants/Err/isError';
+import { isErr } from '../../utils/Err/isError';
 import { getToken } from '../../middleware/jwt/jwt';
 import { HttpResponse } from '../../domain/http/response';
 import { Account, Detail_Information_Interface } from '../../models';
 import { Code } from '../../enum/Code.enum';
 import { Status } from '../../enum/Status.enum';
 import { InsertResult, UpdateResult } from 'typeorm';
-import { type } from 'os';
 import { Register_Interface } from '../../interface/register.interface';
+import { throws } from 'assert';
 
 type UpdateType = UpdateResult | Error;
 type InsertType = InsertResult | Error;
@@ -52,7 +52,7 @@ export const logout = async (
       if (result instanceof UpdateResult) {
          return res
             .status(Code.OK)
-            .send(new HttpResponse(Code.OK, Status.OK, 'Log out successfully', result.raw[0]));
+            .send(new HttpResponse(Code.OK, Status.OK, 'Log out successfully', result.raw[0] + ''));
       } else throw result;
    } catch (error: unknown) {
       return res
@@ -154,9 +154,11 @@ export const updatePassword = async (
          oldPassword,
       );
       if (result instanceof UpdateResult)
-         res.status(Code.OK).send(
-            new HttpResponse(Code.OK, Status.OK, 'Update password successfully', result.raw[0]),
-         );
+         return res
+            .status(Code.OK)
+            .send(
+               new HttpResponse(Code.OK, Status.OK, 'Update password successfully', result.raw[0]),
+            );
 
       throw result;
    } catch (error: unknown) {
@@ -178,10 +180,93 @@ export const register = async (
       if (result instanceof Account) {
          return res
             .status(Code.OK)
-            .json(new HttpResponse(Code.OK, Status.OK, ' Account successfully registered', result));
+            .json(
+               new HttpResponse(
+                  Code.OK,
+                  Status.OK,
+                  ' You have ten minutes to confirm and final register email',
+                  result,
+               ),
+            );
       }
 
       throw result;
+   } catch (error) {
+      return res
+         .status(Code.NOT_FOUND)
+         .send(new HttpResponse(Code.NOT_FOUND, Status.NOT_FOUND, error + ' '));
+   }
+};
+
+export const requestForgetPassword = async (
+   req: Request,
+   res: Response,
+   next: NextFunction,
+): Promise<Response<HttpResponse>> => {
+   try {
+      const { email } = req.body;
+
+      if ((email as string).trim() === '') throw new Error('email empty');
+      const result: Boolean | Error = await accountService.requestForgetPassword(email);
+      if (isErr(result)) throw result;
+      return res
+         .status(Code.OK)
+         .send(new HttpResponse(Code.OK, Status.OK, "confirm you're owner of this email"));
+   } catch (error) {
+      return res
+         .status(Code.BAD_REQUEST)
+         .send(new HttpResponse(Code.BAD_REQUEST, Status.BAD_REQUEST, error + ' '));
+   }
+};
+
+export const verifyForgetPassword = async (
+   req: Request,
+   res: Response,
+   next: NextFunction,
+): Promise<Response<HttpResponse>> => {
+   try {
+      const { email, OTP } = req.body;
+      const result: Error | string = await accountService.verifyForgetPassword(email, OTP);
+      if (isErr(result)) throw result;
+      return res
+         .status(Code.CREATED)
+         .send(new HttpResponse(Code.CREATED, Status.CREATED, 'confirm success', result));
+   } catch (error: unknown) {
+      return res
+         .status(Code.BAD_REQUEST)
+         .send(
+            new HttpResponse(
+               Code.BAD_REQUEST,
+               Status.BAD_REQUEST,
+               'Error :' + error,
+               error as Error,
+            ),
+         );
+   }
+};
+
+export const forgetPassword = async (
+   req: Request,
+   res: Response,
+   next: NextFunction,
+): Promise<Response<HttpResponse>> => {
+   try {
+      const hashEmail: TokenType = getToken(req);
+      if (isErr(hashEmail)) throw hashEmail;
+      const result: UpdateType = await accountService.forgetPassword(
+         hashEmail as string,
+         req.body.newPassword,
+      );
+      if (isErr(result)) throw result;
+      return res
+         .status(Code.OK)
+         .send(
+            new HttpResponse(
+               Code.OK,
+               Status.OK,
+               'update password successfully !!! you can log in with new password',
+            ),
+         );
    } catch (error) {
       return res
          .status(Code.NOT_FOUND)

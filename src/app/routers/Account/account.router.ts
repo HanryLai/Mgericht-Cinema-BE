@@ -17,14 +17,21 @@ router.get('/detail-information', Account.detail_Information);
 //get account of themselves after login
 router.get('/my-Account', Account.account_me);
 
+//request sent OTP confirm forget-password
 router.get('/verify/:userId&&:subID', Account.verify);
+
+//router verify forget password
+router.get('/verify/forget-password-OTP', Account.verifyForgetPassword);
 
 // [PUT/PATCH]
 //Update password account after login
 router.patch('/update-Password', Account.updatePassword);
 
 //forget password, user cannot login account of them
-router.patch('/forget-password');
+router.patch('/forget-password', Account.forgetPassword);
+
+//request verify forget password
+router.get('/request-forget-password', Account.requestForgetPassword);
 
 //update detail information this account
 router.put('/detail-information');
