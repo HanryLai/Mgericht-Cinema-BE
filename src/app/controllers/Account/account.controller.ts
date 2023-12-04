@@ -3,12 +3,13 @@ import * as accountService from '../../services/Account/account.service';
 import { isErr } from '../../utils/Err/isError';
 import { getToken } from '../../middleware/jwt/jwt';
 import { HttpResponse } from '../../domain/http/response';
-import { Account, Detail_Information_Interface } from '../../models';
+import { Account, Detail_Information, Detail_Information_Interface } from '../../models';
 import { Code } from '../../enum/Code.enum';
 import { Status } from '../../enum/Status.enum';
-import { InsertResult, UpdateResult } from 'typeorm';
+import { InsertResult, ObjectId, UpdateResult } from 'typeorm';
 import { Register_Interface } from '../../interface/register.interface';
-import { throws } from 'assert';
+import { decodeJwt } from '../../middleware/jwt/decodeJwt';
+import { jwt } from '../../middleware/jwt/jwt.interface';
 
 type UpdateType = UpdateResult | Error;
 type InsertType = InsertResult | Error;
@@ -267,9 +268,35 @@ export const forgetPassword = async (
                'update password successfully !!! you can log in with new password',
             ),
          );
-   } catch (error) {
+   } catch (error: unknown) {
       return res
          .status(Code.NOT_FOUND)
          .send(new HttpResponse(Code.NOT_FOUND, Status.NOT_FOUND, error + ' '));
+   }
+};
+
+export const updateDetailInformation = async (
+   req: Request,
+   res: Response,
+   next: NextFunction,
+): Promise<Response<HttpResponse>> => {
+   try {
+      const detail: Detail_Information = req.body;
+      const token: string | Error = getToken(req);
+      if (token instanceof Error) throw token;
+      const dataDecode: jwt = decodeJwt(token);
+      const id_Account: string = dataDecode.id;
+
+      const result: UpdateType = await accountService.updateDetailInformation(detail, id_Account);
+      if (isErr(result)) throw result;
+      return res
+         .status(Code.OK)
+         .send(
+            new HttpResponse(Code.OK, Status.OK, 'Update detail information successfully', result),
+         );
+   } catch (error) {
+      return res
+         .status(Code.BAD_REQUEST)
+         .send(new HttpResponse(Code.BAD_REQUEST, Status.BAD_REQUEST, error + ''));
    }
 };

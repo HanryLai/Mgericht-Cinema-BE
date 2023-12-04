@@ -16,6 +16,7 @@ import { isVerify } from '../../utils/verify/isVerify';
 import { sendOTP } from '../../middleware/mail/sendOTP.mail';
 import * as cron from 'node-cron';
 import { isErr } from '../../utils/Err/isError';
+import { Console } from 'console';
 
 export type AccountAndDetail = Account & Detail_Information;
 
@@ -404,6 +405,28 @@ export const forgetPassword = async (
          })
          .execute();
       if (isErr(Account)) throw new Error('Update password errror');
+      return result;
+   } catch (error: unknown) {
+      return error as Error;
+   }
+};
+
+export const updateDetailInformation = async (
+   detail: Detail_Information,
+   id_Account: string,
+): Promise<UpdateResult | Error> => {
+   try {
+      detail.birthday = new Date(detail.birthday);
+      const { email, id, ...updateDetail } = detail;
+      const result: UpdateResult = await ConnectDb.getConnect()
+         .createQueryBuilder()
+         .update(Detail_Information)
+         .set(updateDetail)
+         .where('id = :id', { id: '8bc563b4-4119-4396-af6e-6c0113369c65' })
+         .returning('*')
+         .execute();
+      if (result.affected === undefined || result.affected <= 0)
+         throw new Error(`Update ${id_Account} failed`);
       return result;
    } catch (error: unknown) {
       return error as Error;

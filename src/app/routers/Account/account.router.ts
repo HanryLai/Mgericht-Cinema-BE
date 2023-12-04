@@ -34,7 +34,7 @@ router.patch('/forget-password', Account.forgetPassword);
 router.get('/request-forget-password', Account.requestForgetPassword);
 
 //update detail information this account
-router.put('/detail-information');
+router.put('/detail-information', Account.updateDetailInformation);
 
 // router for {customer}
 // [POST]

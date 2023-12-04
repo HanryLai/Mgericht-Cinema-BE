@@ -20,11 +20,11 @@
       "esModuleInterop": true,
       "emitDecoratorMetadata": true,
       "experimentalDecorators": true,
-      "resolveJsonModule": true,
-      "baseUrl": "src",
-      "paths": {
-         // "@app/*": ["app/*"]
-      }
+      "resolveJsonModule": true
+      // "baseUrl": "src",
+      // "paths": {
+      //    // "@app/*": ["app/*"]
+      // }
    },
    "exclude": ["node_modules"]
    // "include": ["./src/**/*.ts"]

@@ -4,7 +4,7 @@ import { Column, Entity, ObjectId, PrimaryGeneratedColumn } from 'typeorm';
 export interface Detail_Information_Interface {
    id: ObjectId;
    fullName?: string;
-   detail_address?: string;
+   detail_Address?: string;
    birthday?: Date;
    gender?: Boolean;
    phone?: string;
@@ -25,7 +25,7 @@ export class Detail_Information {
    @Column({
       nullable: true,
    })
-   detail_address: string;
+   detail_Address: string;
 
    @Column({
       nullable: true,
