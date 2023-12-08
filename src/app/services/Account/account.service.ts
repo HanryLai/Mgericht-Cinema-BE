@@ -9,21 +9,20 @@ import { Employee } from '../../models/Account_Role/employee.model';
 import { GenerateToken } from '../../middleware/jwt/generateToken';
 import { decode } from 'jsonwebtoken';
 import { jwt } from '../../middleware/jwt/jwt.interface';
-import { InsertResult, ObjectLiteral, UpdateResult } from 'typeorm';
+import { InsertResult, ObjectId, ObjectLiteral, UpdateResult } from 'typeorm';
 import { sendLink } from '../../middleware/mail/sendLink.mail';
 import { Register_Interface } from '../../interface/register.interface';
 import { isVerify } from '../../utils/verify/isVerify';
 import { sendOTP } from '../../middleware/mail/sendOTP.mail';
 import * as cron from 'node-cron';
 import { isErr } from '../../utils/Err/isError';
-import { Console } from 'console';
 
 export type AccountAndDetail = Account & Detail_Information;
 
 export const login = async (body: Account): Promise<UpdateResult | Error> => {
    try {
-      const account = body;
-      const foundAccount = await ConnectDb.getConnect()
+      const account: Account = body;
+      const foundAccount: Account | null = await ConnectDb.getConnect()
          .getRepository(Account)
          .createQueryBuilder('account')
          .where('account.username = :username', { username: account.username })
@@ -31,8 +30,10 @@ export const login = async (body: Account): Promise<UpdateResult | Error> => {
       if (foundAccount === null)
          throw new Error('Incorrect username or password. Please try again.');
       isVerify(foundAccount);
-      const comparePassword = compareSync(account.password, foundAccount?.password as string);
-      console.log(comparePassword);
+      const comparePassword: Boolean = compareSync(
+         account.password,
+         foundAccount?.password as string,
+      );
       if (!comparePassword) throw new Error('Incorrect username or password. Please try again.');
       // generate token
       const jwt = new GenerateToken(foundAccount as unknown as Account);
@@ -422,12 +423,175 @@ export const updateDetailInformation = async (
          .createQueryBuilder()
          .update(Detail_Information)
          .set(updateDetail)
-         .where('id = :id', { id: '8bc563b4-4119-4396-af6e-6c0113369c65' })
+         .where('id_Account = :id', { id: id_Account })
          .returning('*')
          .execute();
       if (result.affected === undefined || result.affected <= 0)
          throw new Error(`Update ${id_Account} failed`);
       return result;
+   } catch (error: unknown) {
+      return error as Error;
+   }
+};
+
+// ADMIN permissions
+
+export const loginAdmin = async (account: Account): Promise<UpdateResult | Error> => {
+   try {
+      const admin: ObjectLiteral | null = await ConnectDb.getConnect()
+         .createQueryBuilder('Admin', 'admin')
+         .innerJoinAndSelect('admin.id_Account', 'Account')
+         .where('Account.username = :username', { username: account.username })
+         .getOne();
+      if (admin === null) return new Error('username or password wrong');
+      const isCorrectPassword: Boolean = compareSync(account.password, admin.id_Account.password);
+      if (isCorrectPassword === false) return new Error('username or password wrong');
+      const generalToken: GenerateToken = new GenerateToken(admin.id_Account);
+      const updateToken: UpdateResult | Error = await ConnectDb.getConnect()
+         .createQueryBuilder()
+         .update(Account)
+         .set({
+            verification_Token: generalToken.token,
+            last_Login: new Date(Date.now()),
+         })
+         .where('id = :id_Account', { id_Account: admin.id_Account.id })
+         .returning('*')
+         .execute();
+      return updateToken;
+   } catch (error: unknown) {
+      return error as Error;
+   }
+};
+
+export const registerFirstAdmin = async (
+   user: Register_Interface,
+): Promise<ObjectLiteral | Error> => {
+   try {
+      const isNull: Admin[] = await ConnectDb.getConnect()
+         .getRepository(Admin)
+         .createQueryBuilder()
+         .select()
+         .getMany();
+      if (isNull.length !== 0)
+         throw new Error('you cannot register first admin because have another admin already');
+      const insertDetail: InsertResult | Error = await ConnectDb.getConnect()
+         .getRepository(Detail_Information)
+         .createQueryBuilder()
+         .insert()
+         .values({
+            email: user.email,
+         })
+         .execute();
+      if (isErr(insertDetail)) throw new Error('insert detail information failed');
+
+      const detailTmp: Detail_Information = insertDetail.raw[0];
+      const { tmp_Role, email, ...accountTmp } = user;
+
+      const insertAccount: InsertResult | Error = await ConnectDb.getConnect()
+         .getRepository(Account)
+         .createQueryBuilder('acc')
+         .insert()
+         .values({
+            ...accountTmp,
+            id_Detail_Information: detailTmp.id,
+            is_Verified: true,
+            password: hashSync(accountTmp.password, parseInt(process.env.BCRYPT_SALT as string)),
+         })
+         .execute();
+      if (isErr(insertAccount)) throw new Error('insert account failed');
+
+      const insertAdmin: InsertResult | Error = await ConnectDb.getConnect()
+         .getRepository(Admin)
+         .createQueryBuilder()
+         .insert()
+         .values({
+            id_Account: insertAccount.raw[0].id,
+         })
+         .execute();
+      if (isErr(insertAdmin)) throw new Error('admin insert failed');
+
+      return await ConnectDb.getConnect()
+         .createQueryBuilder('Admin', 'admin')
+         .innerJoinAndSelect('admin.id_Account', 'account')
+         .getMany();
+   } catch (error: unknown) {
+      return error as Error;
+   }
+};
+
+export const registerForAdmin = async (
+   id_Account: string,
+   user: Register_Interface,
+): Promise<Account | Error> => {
+   try {
+      // check admin permissions
+      const admin: ObjectLiteral | null = await ConnectDb.getConnect()
+         .createQueryBuilder('Admin', 'admin')
+         .leftJoinAndSelect('admin.id_Account', 'Account')
+         .where('Account.id =:id_Account', { id_Account: id_Account })
+         .getOne();
+
+      if (admin === null) throw new Error(`you aren't permitted to register for anther account`);
+
+      // create details information
+      const insertDetail: InsertResult | Error = await ConnectDb.getConnect()
+         .getRepository(Detail_Information)
+         .createQueryBuilder()
+         .insert()
+         .values({
+            email: user.email,
+         })
+         .execute();
+      if (isErr(insertDetail)) throw new Error('insert detail information failed');
+
+      const detailTmp: Detail_Information = insertDetail.raw[0];
+      const { tmp_Role, email, ...accountTmp } = user;
+      // create account
+      const insertAccount: InsertResult | Error = await ConnectDb.getConnect()
+         .getRepository(Account)
+         .createQueryBuilder('acc')
+         .insert()
+         .values({
+            ...accountTmp,
+            id_Detail_Information: detailTmp.id,
+            is_Verified: true,
+            password: hashSync(accountTmp.password, parseInt(process.env.BCRYPT_SALT as string)),
+         })
+         .execute();
+      if (isErr(insertAccount)) throw new Error('insert account failed');
+
+      let role: string;
+      if (user.tmp_Role === 'admin') role = 'Admin';
+      else {
+         role = 'Employee';
+      }
+      // insert base on role
+      const insertAdmin: InsertResult | Error = await ConnectDb.getConnect()
+         .getRepository(`${role}`)
+         .createQueryBuilder()
+         .insert()
+         .values({
+            id_Account: insertAccount.raw[0].id,
+         })
+         .execute();
+      if (isErr(insertAdmin)) throw new Error(`${role} insert failed`);
+      let accountAndRole: ObjectLiteral | null;
+      console.log(role);
+      if (role === 'Admin') {
+         accountAndRole = await ConnectDb.getConnect()
+            .createQueryBuilder('Admin', 'admin')
+            .innerJoinAndSelect('admin.id_Account', 'Account')
+            .where('Account.id=:id', { id: insertAccount.raw[0].id })
+            .getOne();
+      } else {
+         accountAndRole = await ConnectDb.getConnect()
+            .createQueryBuilder('Employee', 'employee')
+            .innerJoinAndSelect('employee.id_Account', 'Account')
+            .where('Account.id=:id', { id: insertAccount.raw[0].id })
+            .getOne();
+      }
+      if (accountAndRole === null) throw new Error('not found in database');
+      return accountAndRole.id_Account;
    } catch (error: unknown) {
       return error as Error;
    }

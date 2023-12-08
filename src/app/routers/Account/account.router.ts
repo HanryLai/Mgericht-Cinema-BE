@@ -69,11 +69,16 @@ router.patch('customer/:id/deactivate');
 
 // [GET]
 //get information of one person
-router.get('admin/:id');
+router.get('/admin/:id');
+
+router.get('/admin/login', Account.loginAdmin);
 
 //[POST]
+//register first admin
+router.post('/admin/first-admin', Account.createFirstAdmin);
+
 //register new account for role admin or employee
-router.post('admin/register');
+router.post('/admin/register', Account.registerForAdmin);
 
 // [PUT/PATCH]
 //change password one of accounts

@@ -3,13 +3,14 @@ import * as accountService from '../../services/Account/account.service';
 import { isErr } from '../../utils/Err/isError';
 import { getToken } from '../../middleware/jwt/jwt';
 import { HttpResponse } from '../../domain/http/response';
-import { Account, Detail_Information, Detail_Information_Interface } from '../../models';
+import { Account, Admin, Detail_Information, Detail_Information_Interface } from '../../models';
 import { Code } from '../../enum/Code.enum';
 import { Status } from '../../enum/Status.enum';
-import { InsertResult, ObjectId, UpdateResult } from 'typeorm';
+import { InsertResult, ObjectId, ObjectLiteral, UpdateResult } from 'typeorm';
 import { Register_Interface } from '../../interface/register.interface';
 import { decodeJwt } from '../../middleware/jwt/decodeJwt';
 import { jwt } from '../../middleware/jwt/jwt.interface';
+import { decode } from 'jsonwebtoken';
 
 type UpdateType = UpdateResult | Error;
 type InsertType = InsertResult | Error;
@@ -293,6 +294,81 @@ export const updateDetailInformation = async (
          .status(Code.OK)
          .send(
             new HttpResponse(Code.OK, Status.OK, 'Update detail information successfully', result),
+         );
+   } catch (error) {
+      return res
+         .status(Code.BAD_REQUEST)
+         .send(new HttpResponse(Code.BAD_REQUEST, Status.BAD_REQUEST, error + ''));
+   }
+};
+
+// ADMIN permissions
+export const loginAdmin = async (
+   req: Request,
+   res: Response,
+   next: NextFunction,
+): Promise<Response<HttpResponse>> => {
+   try {
+      const account: Account = req.body;
+      let result: UpdateType = await accountService.loginAdmin(account);
+
+      if (isErr(result)) throw result;
+      return res
+         .status(Code.OK)
+         .send(new HttpResponse(Code.OK, Status.OK, 'Login for admin successfully', result));
+   } catch (error: unknown) {
+      return res
+         .status(Code.NOT_FOUND)
+         .send(new HttpResponse(Code.NOT_FOUND, Status.NOT_FOUND, error + ' '));
+   }
+};
+
+export const createFirstAdmin = async (
+   req: Request,
+   res: Response,
+   next: NextFunction,
+): Promise<Response<HttpResponse>> => {
+   try {
+      const result: ObjectLiteral | Error = await accountService.registerFirstAdmin(req.body);
+      if (isErr(result)) throw result;
+      return res
+         .status(Code.OK)
+         .send(
+            new HttpResponse(
+               Code.OK,
+               Status.OK,
+               'register for admin or employee successfully',
+               result,
+            ),
+         );
+   } catch (error) {
+      return res
+         .status(Code.BAD_REQUEST)
+         .send(new HttpResponse(Code.BAD_REQUEST, Status.BAD_REQUEST, error + ''));
+   }
+};
+
+export const registerForAdmin = async (
+   req: Request,
+   res: Response,
+   next: NextFunction,
+): Promise<Response<HttpResponse>> => {
+   try {
+      const token = getToken(req);
+      if (isErr(token)) throw token;
+      const id_Admin: string = (decode(token as string) as jwt).id;
+      const result: Account | Error = await accountService.registerForAdmin(id_Admin, req.body);
+      console.log(result);
+      if (isErr(result)) throw result;
+      return res
+         .status(Code.OK)
+         .send(
+            new HttpResponse(
+               Code.OK,
+               Status.OK,
+               'register for admin or employee successfully',
+               result,
+            ),
          );
    } catch (error) {
       return res
