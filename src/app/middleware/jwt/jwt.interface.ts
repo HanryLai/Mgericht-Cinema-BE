@@ -1,4 +1,4 @@
 export interface jwt {
    id: string;
-   data: any;
+   role: string;
 }

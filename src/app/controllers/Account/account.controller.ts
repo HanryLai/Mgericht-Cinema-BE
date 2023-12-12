@@ -10,7 +10,7 @@ import { InsertResult, ObjectId, ObjectLiteral, UpdateResult } from 'typeorm';
 import { Register_Interface } from '../../interface/register.interface';
 import { decodeJwt } from '../../middleware/jwt/decodeJwt';
 import { jwt } from '../../middleware/jwt/jwt.interface';
-import { decode } from 'jsonwebtoken';
+import { JwtPayload, decode } from 'jsonwebtoken';
 
 type UpdateType = UpdateResult | Error;
 type InsertType = InsertResult | Error;
@@ -288,13 +288,22 @@ export const updateDetailInformation = async (
       const dataDecode: jwt = decodeJwt(token);
       const id_Account: string = dataDecode.id;
 
-      const result: UpdateType = await accountService.updateDetailInformation(detail, id_Account);
-      if (isErr(result)) throw result;
-      return res
-         .status(Code.OK)
-         .send(
-            new HttpResponse(Code.OK, Status.OK, 'Update detail information successfully', result),
-         );
+      const result: UpdateResult | Error = await accountService.updateDetailInformation(
+         detail,
+         id_Account,
+      );
+      if (result instanceof UpdateResult) {
+         return res
+            .status(Code.OK)
+            .send(
+               new HttpResponse(
+                  Code.OK,
+                  Status.OK,
+                  'Update detail information successfully',
+                  result.raw[0],
+               ),
+            );
+      } else throw result;
    } catch (error) {
       return res
          .status(Code.BAD_REQUEST)
@@ -371,6 +380,103 @@ export const registerForAdmin = async (
             ),
          );
    } catch (error) {
+      return res
+         .status(Code.BAD_REQUEST)
+         .send(new HttpResponse(Code.BAD_REQUEST, Status.BAD_REQUEST, error + ''));
+   }
+};
+
+// For EMPLOYEE
+export const loginForEmployee = async (
+   req: Request,
+   res: Response,
+   next: NextFunction,
+): Promise<Response<HttpResponse>> => {
+   try {
+      const account: Account = req.body;
+      let result: UpdateType = await accountService.employeeLogin(account);
+
+      if (result instanceof UpdateResult) {
+         res.setHeader('Authorization', result.raw[0].verification_Token);
+         return res
+            .status(Code.OK)
+            .send(
+               new HttpResponse(Code.OK, Status.OK, 'Login in with this account', result.raw[0]),
+            );
+      } else throw result;
+   } catch (error: unknown) {
+      return res
+         .status(Code.NOT_FOUND)
+         .send(new HttpResponse(Code.NOT_FOUND, Status.NOT_FOUND, error + ' '));
+   }
+};
+
+export const getDetailForCustomer = async (
+   req: Request,
+   res: Response,
+   next: NextFunction,
+): Promise<Response<HttpResponse>> => {
+   try {
+      const token: string | Error = getToken(req);
+      if (isErr(token)) throw token;
+      const payload: jwt = decodeJwt(token as string);
+      if (payload.role === 'customer')
+         throw new Error("You haven't permission to access this profile");
+      else if (payload.role === 'admin') throw new Error('This router using for employee');
+      const id_Access = payload.id;
+      const id_User = req.params.id;
+      const result: ObjectLiteral | Error = await accountService.getDetailForCustomer(
+         id_Access,
+         id_User,
+      );
+      if (isErr(result)) throw result;
+      return res
+         .status(Code.OK)
+         .send(
+            new HttpResponse(
+               Code.OK,
+               Status.OK,
+               'get account and detail information of customer',
+               result,
+            ),
+         );
+   } catch (error: unknown) {
+      return res
+         .status(Code.BAD_REQUEST)
+         .send(new HttpResponse(Code.BAD_REQUEST, Status.BAD_REQUEST, error + ''));
+   }
+};
+
+export const getDetailForCustomerByPhone = async (
+   req: Request,
+   res: Response,
+   next: NextFunction,
+): Promise<Response<HttpResponse>> => {
+   try {
+      const token: string | Error = getToken(req);
+      if (isErr(token)) throw token;
+      const payload: jwt = decodeJwt(token as string);
+      if (payload.role === 'customer')
+         throw new Error("You haven't permission to access this profile");
+      else if (payload.role === 'admin') throw new Error('This router using for employee');
+      const id_Access = payload.id;
+      const phone = req.params.phone;
+      const result: ObjectLiteral | Error = await accountService.getDetailForCustomerByPhone(
+         id_Access,
+         phone,
+      );
+      if (isErr(result)) throw result;
+      return res
+         .status(Code.OK)
+         .send(
+            new HttpResponse(
+               Code.OK,
+               Status.OK,
+               'get account and detail information of customer',
+               result,
+            ),
+         );
+   } catch (error: unknown) {
       return res
          .status(Code.BAD_REQUEST)
          .send(new HttpResponse(Code.BAD_REQUEST, Status.BAD_REQUEST, error + ''));

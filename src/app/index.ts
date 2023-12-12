@@ -19,7 +19,7 @@ class App {
       this.middleware();
       this.connectDb();
       this.routes();
-      // this.handleError();
+      this.handleError();
    }
 
    private middleware(): void {
@@ -39,14 +39,19 @@ class App {
    }
    // =>>>>>> Err, fix it
    private handleError(): void {
-      this.express.use(
-         (err: ErrorRequestHandler, _req: Request, res: Response, _next: NextFunction) => {
-            console.log(err);
-            return res
-               .status(Code.OK)
-               .send(new HttpResponse(Code.OK, Status.OK, 'Login in with this account'));
-         },
-      );
+      function handleError(
+         err: ErrorRequestHandler,
+         req: Request,
+         res: Response,
+         next: NextFunction,
+      ): Response<HttpResponse> {
+         return res
+            .status(Code.BAD_REQUEST)
+            .send(
+               new HttpResponse(Code.BAD_REQUEST, Status.BAD_REQUEST, err + ' for handling error'),
+            );
+      }
+      this.express.use(handleError);
    }
 }
 export default new App().express;

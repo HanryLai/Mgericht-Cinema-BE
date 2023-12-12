@@ -9,13 +9,14 @@ import { Employee } from '../../models/Account_Role/employee.model';
 import { GenerateToken } from '../../middleware/jwt/generateToken';
 import { decode } from 'jsonwebtoken';
 import { jwt } from '../../middleware/jwt/jwt.interface';
-import { InsertResult, ObjectId, ObjectLiteral, UpdateResult } from 'typeorm';
+import { InsertResult, ObjectLiteral, UpdateResult } from 'typeorm';
 import { sendLink } from '../../middleware/mail/sendLink.mail';
 import { Register_Interface } from '../../interface/register.interface';
 import { isVerify } from '../../utils/verify/isVerify';
 import { sendOTP } from '../../middleware/mail/sendOTP.mail';
 import * as cron from 'node-cron';
 import { isErr } from '../../utils/Err/isError';
+import { getRoleAccount } from '../../constants/getRoleAccount';
 
 export type AccountAndDetail = Account & Detail_Information;
 
@@ -35,9 +36,12 @@ export const login = async (body: Account): Promise<UpdateResult | Error> => {
          foundAccount?.password as string,
       );
       if (!comparePassword) throw new Error('Incorrect username or password. Please try again.');
+      //get role account
+
       // generate token
-      const jwt = new GenerateToken(foundAccount as unknown as Account);
-      const token = jwt.token;
+
+      const jwt = new GenerateToken(foundAccount.id.toString());
+      const token = await jwt.token;
       const updateToken = await ConnectDb.getConnect()
          .createQueryBuilder()
          .update(Account)
@@ -418,17 +422,38 @@ export const updateDetailInformation = async (
 ): Promise<UpdateResult | Error> => {
    try {
       detail.birthday = new Date(detail.birthday);
-      const { email, id, ...updateDetail } = detail;
-      const result: UpdateResult = await ConnectDb.getConnect()
+      let { email, id, ...updateDetail } = detail;
+      updateDetail = updateDetail as unknown as Detail_Information;
+      let result: ObjectLiteral | null = await ConnectDb.getConnect()
+         .createQueryBuilder('Account', 'acc')
+         .innerJoinAndSelect('acc.id_Detail_Information', 'Detail_Information')
+         .where('acc.id = :id ', { id: id_Account })
+         .getOne();
+
+      if (result === null) throw new Error('cannot get information');
+      if (result !== null) {
+         result = result.id_Detail_Information;
+         result = result as unknown as Detail_Information;
+      }
+
+      for (let [key, value] of Object.entries(result)) {
+         if (updateDetail[key as keyof typeof updateDetail] !== undefined) {
+            result[key] = updateDetail[key as keyof typeof updateDetail];
+         }
+      }
+
+      console.log(result);
+      const UpdateResult = await ConnectDb.getConnect()
+         .getRepository(Detail_Information)
          .createQueryBuilder()
-         .update(Detail_Information)
-         .set(updateDetail)
-         .where('id_Account = :id', { id: id_Account })
+         .update()
+         .set(result)
+         .where('id = :id', { id: result.id })
          .returning('*')
          .execute();
-      if (result.affected === undefined || result.affected <= 0)
+      if (UpdateResult.affected === undefined || UpdateResult.affected === 0)
          throw new Error(`Update ${id_Account} failed`);
-      return result;
+      return UpdateResult;
    } catch (error: unknown) {
       return error as Error;
    }
@@ -446,12 +471,14 @@ export const loginAdmin = async (account: Account): Promise<UpdateResult | Error
       if (admin === null) return new Error('username or password wrong');
       const isCorrectPassword: Boolean = compareSync(account.password, admin.id_Account.password);
       if (isCorrectPassword === false) return new Error('username or password wrong');
-      const generalToken: GenerateToken = new GenerateToken(admin.id_Account);
+      // generate
+
+      const generalToken: GenerateToken = new GenerateToken(admin.id_Account.id);
       const updateToken: UpdateResult | Error = await ConnectDb.getConnect()
          .createQueryBuilder()
          .update(Account)
          .set({
-            verification_Token: generalToken.token,
+            verification_Token: await generalToken.token,
             last_Login: new Date(Date.now()),
          })
          .where('id = :id_Account', { id_Account: admin.id_Account.id })
@@ -592,6 +619,103 @@ export const registerForAdmin = async (
       }
       if (accountAndRole === null) throw new Error('not found in database');
       return accountAndRole.id_Account;
+   } catch (error: unknown) {
+      return error as Error;
+   }
+};
+
+// same login for customer but it will directly other page
+export const employeeLogin = async (body: Account): Promise<UpdateResult | Error> => {
+   try {
+      const account: Account = body;
+      const foundAccount: Account | null = await ConnectDb.getConnect()
+         .getRepository(Account)
+         .createQueryBuilder('account')
+         .where('account.username = :username', { username: account.username })
+         .getOne();
+      if (foundAccount === null)
+         throw new Error('Incorrect username or password. Please try again.');
+      isVerify(foundAccount);
+      const comparePassword: Boolean = compareSync(
+         account.password,
+         foundAccount?.password as string,
+      );
+      if (!comparePassword) throw new Error('Incorrect username or password. Please try again.');
+      // generate token
+      const jwt = new GenerateToken(foundAccount.id.toString());
+      const token = await jwt.token;
+      const updateToken = await ConnectDb.getConnect()
+         .createQueryBuilder()
+         .update(Account)
+         .set({
+            verification_Token: token,
+            last_Login: new Date(Date.now()),
+         })
+         .where('id = :id', { id: foundAccount?.id })
+         .returning('*')
+         .execute();
+      if (updateToken instanceof Error) {
+         throw new Error('update token failure');
+      }
+
+      return updateToken;
+   } catch (error) {
+      return error;
+   }
+};
+
+export const getDetailForCustomer = async (
+   token: string,
+   id_user: string,
+): Promise<ObjectLiteral | Error> => {
+   try {
+      const isAmin: Admin | null = await ConnectDb.getConnect()
+         .getRepository(Admin)
+         .createQueryBuilder()
+         .where('Admin.id_Account =:id', { id: id_user })
+         .getOne();
+      if (isAmin !== null) throw new Error("You haven't permission to access this profile");
+      const detailAndAccount: ObjectLiteral | null = await ConnectDb.getConnect()
+         .createQueryBuilder('Account', 'acc')
+         .innerJoinAndSelect('acc.id_Detail_Information', 'Detail_Information')
+         .where('acc.id =:id', { id: id_user })
+         .getOne();
+      if (detailAndAccount === null) throw new Error('cannot get detail information');
+
+      const { password, verification_Token, ...result } = detailAndAccount;
+
+      return result;
+   } catch (error: unknown) {
+      return error as Error;
+   }
+};
+
+export const getDetailForCustomerByPhone = async (
+   token: string,
+   phone: string,
+): Promise<ObjectLiteral | Error> => {
+   try {
+      const isAmin: ObjectLiteral | null = await ConnectDb.getConnect()
+         .createQueryBuilder('Admin', 'ad')
+         .innerJoinAndSelect('ad.id_Account', 'Account')
+         .innerJoinAndSelect('Account.id_Detail_Information', 'Detail_Information')
+         .where('Detail_Information.phone = :phone', { phone: phone })
+         .getMany();
+      console.log(isAmin);
+      if (isAmin.length > 0) throw new Error("You haven't permission to access this profile");
+      const detailAndAccount: ObjectLiteral | null = await ConnectDb.getConnect()
+         .createQueryBuilder('Account', 'acc')
+         .innerJoinAndSelect('acc.id_Detail_Information', 'Detail_Information')
+         .where('Detail_Information.phone =:phone', { phone: phone })
+         .getMany();
+      if (detailAndAccount.length === 0) throw new Error('cannot get detail information');
+      console.log(detailAndAccount);
+      detailAndAccount.map((acc: ObjectLiteral) => {
+         const { password, verification_Token, ...resultAcc } = acc;
+         return resultAcc;
+      });
+
+      return detailAndAccount;
    } catch (error: unknown) {
       return error as Error;
    }

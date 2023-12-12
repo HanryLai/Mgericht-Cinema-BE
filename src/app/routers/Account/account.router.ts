@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import * as Account from '../../controllers/Account/account.controller';
+import { isAdmin } from '../../middleware/admin';
 const router = Router();
 
 //router general
@@ -48,8 +49,13 @@ router.post('/register', Account.register);
 
 // [GET]
 
+//employee login
+router.get('/employee/login', Account.loginForEmployee);
+
 //get information detail and account without password other customer
-router.get('customer/:id');
+router.get('/customer/:id', Account.getDetailForCustomer);
+
+router.get('/customer/phone/:phone', Account.getDetailForCustomerByPhone);
 
 //[PUT/PATCH]
 // support customer reset password
@@ -78,7 +84,7 @@ router.get('/admin/login', Account.loginAdmin);
 router.post('/admin/first-admin', Account.createFirstAdmin);
 
 //register new account for role admin or employee
-router.post('/admin/register', Account.registerForAdmin);
+router.post('/admin/register', isAdmin, Account.registerForAdmin);
 
 // [PUT/PATCH]
 //change password one of accounts
