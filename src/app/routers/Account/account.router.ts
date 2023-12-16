@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import * as Account from '../../controllers/Account/account.controller';
-import { isAdmin } from '../../middleware/admin';
+import * as Middleware from '../../middleware/login';
 const router = Router();
 
 //router general
@@ -53,19 +53,26 @@ router.post('/register', Account.register);
 router.get('/employee/login', Account.loginForEmployee);
 
 //get information detail and account without password other customer
-router.get('/customer/:id', Account.getDetailForCustomer);
-
-router.get('/customer/phone/:phone', Account.getDetailForCustomerByPhone);
+// by id
+router.get('/employee/:id_customer', Account.getDetailForCustomer);
+// by phone
+router.get('/employee/phone/:phone_customer', Account.getDetailForCustomerByPhone);
 
 //[PUT/PATCH]
-// support customer reset password
-router.patch('customer/:id/reset-password');
 
 //active account customer
-router.patch('customer/:id/active');
+router.patch(
+   '/employee/:id_customer/active',
+   Middleware.isEmployee,
+   Account.activeAccount_Employee,
+);
 
 //deactivate account customer
-router.patch('customer/:id/deactivate');
+router.patch(
+   '/employee/:id_customer/deactivate',
+   Middleware.isEmployee,
+   Account.deactivateAccount_Employee,
+);
 
 //router for {admin}
 // {admin}
@@ -75,7 +82,11 @@ router.patch('customer/:id/deactivate');
 
 // [GET]
 //get information of one person
-router.get('/admin/:id');
+//by id
+router.get('/admin/:id', Account.getDetailForCustomer_Admin);
+
+//by phone
+router.get('/admin/:phone', Account.getDetailForCustomerByPhone_Admin);
 
 router.get('/admin/login', Account.loginAdmin);
 
@@ -84,7 +95,7 @@ router.get('/admin/login', Account.loginAdmin);
 router.post('/admin/first-admin', Account.createFirstAdmin);
 
 //register new account for role admin or employee
-router.post('/admin/register', isAdmin, Account.registerForAdmin);
+router.post('/admin/register', Middleware.isAdmin, Account.registerForAdmin);
 
 // [PUT/PATCH]
 //change password one of accounts

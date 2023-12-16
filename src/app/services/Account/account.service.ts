@@ -10,13 +10,11 @@ import { GenerateToken } from '../../middleware/jwt/generateToken';
 import { decode } from 'jsonwebtoken';
 import { jwt } from '../../middleware/jwt/jwt.interface';
 import { InsertResult, ObjectLiteral, UpdateResult } from 'typeorm';
-import { sendLink } from '../../middleware/mail/sendLink.mail';
 import { Register_Interface } from '../../interface/register.interface';
 import { isVerify } from '../../utils/verify/isVerify';
-import { sendOTP } from '../../middleware/mail/sendOTP.mail';
 import * as cron from 'node-cron';
 import { isErr } from '../../utils/Err/isError';
-import { getRoleAccount } from '../../constants/getRoleAccount';
+import * as SendEmail from '../../middleware/mail';
 
 export type AccountAndDetail = Account & Detail_Information;
 
@@ -278,7 +276,7 @@ export const register = async (body: Register_Interface): Promise<Account | Erro
       }
       account.id_Detail_Information = information_Created;
       const result: Account = await ConnectDb.getConnect().getRepository(Account).save(account);
-      new sendLink(
+      new SendEmail.sendLink(
          body.email,
          'Email CME CINEMA confirm register',
          result.id.toString(),
@@ -335,7 +333,7 @@ export const requestForgetPassword = async (email: string): Promise<Boolean | Er
          .where('email = :email', { email: email })
          .getOne();
       if (detail_Information === null) throw new Error('not exist this account');
-      const send: sendOTP = new sendOTP(
+      const send: SendEmail.sendOTP = new SendEmail.sendOTP(
          detail_Information.email,
          'Confirm forget password CME-CINEMA',
       );
@@ -474,11 +472,14 @@ export const loginAdmin = async (account: Account): Promise<UpdateResult | Error
       // generate
 
       const generalToken: GenerateToken = new GenerateToken(admin.id_Account.id);
+      console.log(generalToken);
+
+      const token = await generalToken.token;
       const updateToken: UpdateResult | Error = await ConnectDb.getConnect()
          .createQueryBuilder()
          .update(Account)
          .set({
-            verification_Token: await generalToken.token,
+            verification_Token: token,
             last_Login: new Date(Date.now()),
          })
          .where('id = :id_Account', { id_Account: admin.id_Account.id })
@@ -718,5 +719,108 @@ export const getDetailForCustomerByPhone = async (
       return detailAndAccount;
    } catch (error: unknown) {
       return error as Error;
+   }
+};
+
+export const getDetailForCustomer_Admin = async (
+   token: string,
+   id_user: string,
+): Promise<ObjectLiteral | Error> => {
+   try {
+      const detailAndAccount: ObjectLiteral | null = await ConnectDb.getConnect()
+         .createQueryBuilder('Account', 'acc')
+         .innerJoinAndSelect('acc.id_Detail_Information', 'Detail_Information')
+         .where('acc.id =:id', { id: id_user })
+         .getOne();
+      if (detailAndAccount === null) throw new Error('cannot get detail information');
+
+      const { password, verification_Token, ...result } = detailAndAccount;
+
+      return result;
+   } catch (error: unknown) {
+      return error as Error;
+   }
+};
+
+export const getDetailForCustomerByPhone_Admin = async (
+   token: string,
+   phone: string,
+): Promise<ObjectLiteral | Error> => {
+   try {
+      const detailAndAccount: ObjectLiteral | null = await ConnectDb.getConnect()
+         .createQueryBuilder('Account', 'acc')
+         .innerJoinAndSelect('acc.id_Detail_Information', 'Detail_Information')
+         .where('Detail_Information.phone =:phone', { phone: phone })
+         .getMany();
+      if (detailAndAccount.length === 0) throw new Error('cannot get detail information');
+      console.log(detailAndAccount);
+      detailAndAccount.map((acc: ObjectLiteral) => {
+         const { password, verification_Token, ...resultAcc } = acc;
+         return resultAcc;
+      });
+
+      return detailAndAccount;
+   } catch (error: unknown) {
+      return error as Error;
+   }
+};
+
+export const activeAccount_Employee = async (user_id: string): Promise<UpdateResult | Error> => {
+   try {
+      // check user_id is customer or not
+      const isCustomer = await ConnectDb.getConnect()
+         .createQueryBuilder('Customer', 'cus')
+         .innerJoinAndSelect('cus.id_Account', 'Account')
+         .where('Account.id = :id_Account', { id_Account: user_id })
+         .getOne();
+
+      // if user_id is customer
+      if (isCustomer == null)
+         throw new Error(`You're not permission to deactivate admin or employee account`);
+
+      const result = await ConnectDb.getConnect()
+         .createQueryBuilder()
+         .update(Account)
+         .set({
+            is_Verified: true,
+         })
+         .where('id=:user_id', { user_id: user_id })
+         .execute();
+      if (result.affected === undefined || result.affected === 0)
+         throw new Error('incorrect id user');
+      return result;
+   } catch (error) {
+      return error;
+   }
+};
+
+export const deactivateAccount_Employee = async (
+   user_id: string,
+): Promise<UpdateResult | Error> => {
+   try {
+      // check user_id is customer or not
+      const isCustomer = await ConnectDb.getConnect()
+         .createQueryBuilder('Customer', 'cus')
+         .innerJoinAndSelect('cus.id_Account', 'Account')
+         .where('Account.id = :id_Account', { id_Account: user_id })
+         .getOne();
+
+      // if user_id is customer
+      if (isCustomer == null)
+         throw new Error(`You're not permission to deactivate admin or employee account`);
+
+      const result = await ConnectDb.getConnect()
+         .createQueryBuilder()
+         .update(Account)
+         .set({
+            is_Verified: false,
+         })
+         .where('id=:user_id', { user_id: user_id })
+         .execute();
+      if (result.affected === undefined || result.affected === 0)
+         throw new Error('incorrect id user');
+      return result;
+   } catch (error) {
+      return error;
    }
 };

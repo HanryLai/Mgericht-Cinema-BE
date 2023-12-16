@@ -11,6 +11,7 @@ import { Register_Interface } from '../../interface/register.interface';
 import { decodeJwt } from '../../middleware/jwt/decodeJwt';
 import { jwt } from '../../middleware/jwt/jwt.interface';
 import { JwtPayload, decode } from 'jsonwebtoken';
+import { ConnectDb } from '../../connectDb/connectdb.postgres';
 
 type UpdateType = UpdateResult | Error;
 type InsertType = InsertResult | Error;
@@ -253,8 +254,8 @@ export const forgetPassword = async (
    next: NextFunction,
 ): Promise<Response<HttpResponse>> => {
    try {
-      const hashEmail: TokenType = getToken(req);
-      if (isErr(hashEmail)) throw hashEmail;
+      const hashEmail: string | undefined = req.headers.authorization?.split(' ')[1];
+      if (hashEmail === undefined) throw new Error('token empty');
       const result: UpdateType = await accountService.forgetPassword(
          hashEmail as string,
          req.body.newPassword,
@@ -424,7 +425,7 @@ export const getDetailForCustomer = async (
          throw new Error("You haven't permission to access this profile");
       else if (payload.role === 'admin') throw new Error('This router using for employee');
       const id_Access = payload.id;
-      const id_User = req.params.id;
+      const id_User = req.params.id_customer;
       const result: ObjectLiteral | Error = await accountService.getDetailForCustomer(
          id_Access,
          id_User,
@@ -460,7 +461,7 @@ export const getDetailForCustomerByPhone = async (
          throw new Error("You haven't permission to access this profile");
       else if (payload.role === 'admin') throw new Error('This router using for employee');
       const id_Access = payload.id;
-      const phone = req.params.phone;
+      const phone = req.params.phone_customer;
       const result: ObjectLiteral | Error = await accountService.getDetailForCustomerByPhone(
          id_Access,
          phone,
@@ -476,6 +477,136 @@ export const getDetailForCustomerByPhone = async (
                result,
             ),
          );
+   } catch (error: unknown) {
+      return res
+         .status(Code.BAD_REQUEST)
+         .send(new HttpResponse(Code.BAD_REQUEST, Status.BAD_REQUEST, error + ''));
+   }
+};
+
+export const getDetailForCustomer_Admin = async (
+   req: Request,
+   res: Response,
+   next: NextFunction,
+): Promise<Response<HttpResponse>> => {
+   try {
+      const token: string | Error = getToken(req);
+      if (isErr(token)) throw token;
+      const payload: jwt = decodeJwt(token as string);
+      if (payload.role === 'customer')
+         throw new Error("You haven't permission to access this profile");
+      else if (payload.role === 'employee') throw new Error('This router using for admin');
+      const id_Access = payload.id;
+      const id_User = req.params.id;
+      const result: ObjectLiteral | Error = await accountService.getDetailForCustomer(
+         id_Access,
+         id_User,
+      );
+      if (isErr(result)) throw result;
+      return res
+         .status(Code.OK)
+         .send(
+            new HttpResponse(
+               Code.OK,
+               Status.OK,
+               'get account and detail information of customer',
+               result,
+            ),
+         );
+   } catch (error: unknown) {
+      return res
+         .status(Code.BAD_REQUEST)
+         .send(new HttpResponse(Code.BAD_REQUEST, Status.BAD_REQUEST, error + ''));
+   }
+};
+
+export const getDetailForCustomerByPhone_Admin = async (
+   req: Request,
+   res: Response,
+   next: NextFunction,
+): Promise<Response<HttpResponse>> => {
+   try {
+      const token: string | Error = getToken(req);
+      if (isErr(token)) throw token;
+      const payload: jwt = decodeJwt(token as string);
+      if (payload.role === 'customer')
+         throw new Error("You haven't permission to access this profile");
+      else if (payload.role === 'employee') throw new Error('This router using for admin');
+      const id_Access = payload.id;
+      const phone = req.params.phone;
+      const result: ObjectLiteral | Error = await accountService.getDetailForCustomerByPhone(
+         id_Access,
+         phone,
+      );
+      if (isErr(result)) throw result;
+      return res
+         .status(Code.OK)
+         .send(
+            new HttpResponse(
+               Code.OK,
+               Status.OK,
+               'get account and detail information of customer/employee',
+               result,
+            ),
+         );
+   } catch (error: unknown) {
+      return res
+         .status(Code.BAD_REQUEST)
+         .send(new HttpResponse(Code.BAD_REQUEST, Status.BAD_REQUEST, error + ''));
+   }
+};
+
+export const activeAccount_Employee = async (
+   req: Request,
+   res: Response,
+   next: NextFunction,
+): Promise<Response<HttpResponse>> => {
+   try {
+      const result: UpdateType = await accountService.activeAccount_Employee(
+         req.params.id_customer,
+      );
+      if (result instanceof UpdateResult) {
+         return res
+            .status(Code.OK)
+            .send(
+               new HttpResponse(
+                  Code.OK,
+                  Status.OK,
+                  'active this account successfully',
+                  result.raw[0],
+               ),
+            );
+      }
+      throw result;
+   } catch (error: unknown) {
+      return res
+         .status(Code.BAD_REQUEST)
+         .send(new HttpResponse(Code.BAD_REQUEST, Status.BAD_REQUEST, error + ''));
+   }
+};
+
+export const deactivateAccount_Employee = async (
+   req: Request,
+   res: Response,
+   next: NextFunction,
+): Promise<Response<HttpResponse>> => {
+   try {
+      const result: UpdateType = await accountService.deactivateAccount_Employee(
+         req.params.id_customer,
+      );
+      if (result instanceof UpdateResult) {
+         return res
+            .status(Code.OK)
+            .send(
+               new HttpResponse(
+                  Code.OK,
+                  Status.OK,
+                  `deactive this account ${req.params.id_customer} successfully`,
+                  result.raw[0],
+               ),
+            );
+      }
+      throw result;
    } catch (error: unknown) {
       return res
          .status(Code.BAD_REQUEST)

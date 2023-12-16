@@ -1,6 +1,5 @@
 import { Request } from 'express';
-import { jwt } from './jwt.interface';
-import { Jwt, JwtPayload, decode, verify } from 'jsonwebtoken';
+import { JwtPayload, verify } from 'jsonwebtoken';
 export const getToken = (req: Request): string | Error => {
    try {
       const token: string | null | undefined = req.headers.authorization?.split(' ')[1];
