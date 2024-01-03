@@ -559,7 +559,7 @@ export const registerForAdmin = async (
          .where('Account.id =:id_Account', { id_Account: id_Account })
          .getOne();
 
-      if (admin === null) throw new Error(`you aren't permitted to register for anther account`);
+      if (admin === null) throw new Error(`you aren't permitted to register for this account`);
 
       // create details information
       const insertDetail: InsertResult | Error = await ConnectDb.getConnect()

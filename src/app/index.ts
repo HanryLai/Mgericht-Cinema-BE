@@ -37,7 +37,7 @@ class App {
       new ConnectDb();
       ConnectDb.setConnect();
    }
-   // =>>>>>> Err, fix it
+
    private handleError(): void {
       function handleError(
          err: ErrorRequestHandler,

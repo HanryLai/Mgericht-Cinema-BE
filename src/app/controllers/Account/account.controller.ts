@@ -364,10 +364,10 @@ export const registerForAdmin = async (
    next: NextFunction,
 ): Promise<Response<HttpResponse>> => {
    try {
-      const token = getToken(req);
-      if (isErr(token)) throw token;
-      const id_Admin: string = (decode(token as string) as jwt).id;
-      const result: Account | Error = await accountService.registerForAdmin(id_Admin, req.body);
+      const result: Account | Error = await accountService.registerForAdmin(
+         req.id as string,
+         req.body,
+      );
       console.log(result);
       if (isErr(result)) throw result;
       return res
@@ -418,16 +418,9 @@ export const getDetailForCustomer = async (
    next: NextFunction,
 ): Promise<Response<HttpResponse>> => {
    try {
-      const token: string | Error = getToken(req);
-      if (isErr(token)) throw token;
-      const payload: jwt = decodeJwt(token as string);
-      if (payload.role === 'customer')
-         throw new Error("You haven't permission to access this profile");
-      else if (payload.role === 'admin') throw new Error('This router using for employee');
-      const id_Access = payload.id;
       const id_User = req.params.id_customer;
       const result: ObjectLiteral | Error = await accountService.getDetailForCustomer(
-         id_Access,
+         req.id as string,
          id_User,
       );
       if (isErr(result)) throw result;
@@ -454,16 +447,9 @@ export const getDetailForCustomerByPhone = async (
    next: NextFunction,
 ): Promise<Response<HttpResponse>> => {
    try {
-      const token: string | Error = getToken(req);
-      if (isErr(token)) throw token;
-      const payload: jwt = decodeJwt(token as string);
-      if (payload.role === 'customer')
-         throw new Error("You haven't permission to access this profile");
-      else if (payload.role === 'admin') throw new Error('This router using for employee');
-      const id_Access = payload.id;
       const phone = req.params.phone_customer;
       const result: ObjectLiteral | Error = await accountService.getDetailForCustomerByPhone(
-         id_Access,
+         req.id as string,
          phone,
       );
       if (isErr(result)) throw result;
@@ -490,16 +476,9 @@ export const getDetailForCustomer_Admin = async (
    next: NextFunction,
 ): Promise<Response<HttpResponse>> => {
    try {
-      const token: string | Error = getToken(req);
-      if (isErr(token)) throw token;
-      const payload: jwt = decodeJwt(token as string);
-      if (payload.role === 'customer')
-         throw new Error("You haven't permission to access this profile");
-      else if (payload.role === 'employee') throw new Error('This router using for admin');
-      const id_Access = payload.id;
       const id_User = req.params.id;
       const result: ObjectLiteral | Error = await accountService.getDetailForCustomer(
-         id_Access,
+         req.id as string,
          id_User,
       );
       if (isErr(result)) throw result;
@@ -526,16 +505,9 @@ export const getDetailForCustomerByPhone_Admin = async (
    next: NextFunction,
 ): Promise<Response<HttpResponse>> => {
    try {
-      const token: string | Error = getToken(req);
-      if (isErr(token)) throw token;
-      const payload: jwt = decodeJwt(token as string);
-      if (payload.role === 'customer')
-         throw new Error("You haven't permission to access this profile");
-      else if (payload.role === 'employee') throw new Error('This router using for admin');
-      const id_Access = payload.id;
       const phone = req.params.phone;
       const result: ObjectLiteral | Error = await accountService.getDetailForCustomerByPhone(
-         id_Access,
+         req.id as string,
          phone,
       );
       if (isErr(result)) throw result;

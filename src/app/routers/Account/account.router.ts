@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import * as Account from '../../controllers/Account/account.controller';
-import * as Middleware from '../../middleware/login';
+import * as Middleware from '../../middleware/checkUser';
 const router = Router();
 
 //router general
@@ -54,9 +54,13 @@ router.get('/employee/login', Account.loginForEmployee);
 
 //get information detail and account without password other customer
 // by id
-router.get('/employee/:id_customer', Account.getDetailForCustomer);
+router.get('/employee/:id_customer', Middleware.isEmployee, Account.getDetailForCustomer);
 // by phone
-router.get('/employee/phone/:phone_customer', Account.getDetailForCustomerByPhone);
+router.get(
+   '/employee/phone/:phone_customer',
+   Middleware.isEmployee,
+   Account.getDetailForCustomerByPhone,
+);
 
 //[PUT/PATCH]
 
@@ -82,13 +86,15 @@ router.patch(
 
 // [GET]
 //get information of one person
+
+//login for admin
+router.get('/admin/login', Account.loginAdmin);
+
 //by id
-router.get('/admin/:id', Account.getDetailForCustomer_Admin);
+router.get('/admin/:id', Middleware.isAdmin, Account.getDetailForCustomer_Admin);
 
 //by phone
-router.get('/admin/:phone', Account.getDetailForCustomerByPhone_Admin);
-
-router.get('/admin/login', Account.loginAdmin);
+router.get('/admin/phone/:phone', Middleware.isAdmin, Account.getDetailForCustomerByPhone_Admin);
 
 //[POST]
 //register first admin

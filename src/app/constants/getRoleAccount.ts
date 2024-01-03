@@ -1,7 +1,5 @@
-import { resolve } from 'path';
 import { ConnectDb } from '../connectDb/connectdb.postgres';
-import { Account, Admin, Employee } from '../models';
-import { promises } from 'dns';
+import {  Admin, Employee } from '../models';
 
 export class getRoleAccount {
    id_Account: string;
