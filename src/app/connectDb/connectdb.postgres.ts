@@ -8,11 +8,11 @@ export class ConnectDb {
    constructor() {
       ConnectDb.connect = new DataSource({
          type: 'postgres',
-         host: 'localhost',
-         port: 5432,
-         username: 'postgres',
+         host: process.env.DBS_HOST,
+         port: parseInt(process.env.DBS_PORT as string),
+         username: process.env.DBS_USERNAME,
          password: process.env.PASSWORD_POSTGRES,
-         database: 'Mgerich_Cinema',
+         database: process.env.DBS_NAME,
          entities: [
             Model_Postgres.Address,
             Model_Postgres.Theater,

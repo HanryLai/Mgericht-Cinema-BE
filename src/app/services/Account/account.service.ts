@@ -280,7 +280,7 @@ export const register = async (body: Register_Interface): Promise<Account | Erro
          body.email,
          'Email CME CINEMA confirm register',
          result.id.toString(),
-         `${process.env.HOST}${process.env.PORT_DEV}/api/account/verify`,
+         `http://${process.env.HOST}:${process.env.PORT_DEV}/api/account/verify`,
       );
 
       // set cron schedule delete this Account after 10 minutes
