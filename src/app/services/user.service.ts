@@ -19,7 +19,7 @@ class UserService {
             // hash password
             const hashedPassword = await bcrypt.hash(user.password, 10);
 
-          /* This code snippet is creating a new user document in the database using the Mongoose model
+            /* This code snippet is creating a new user document in the database using the Mongoose model
           `userModel`. */
             const newUser = await userModel.create({
                 ...user,
@@ -27,11 +27,19 @@ class UserService {
             });
 
             if (newUser) {
-               /* This code snippet is generating a new RSA key pair synchronously using Node.js's
+                /* This code snippet is generating a new RSA key pair synchronously using Node.js's
                built-in `crypto` module. The `crypto.generateKeyPairSync` method is used to generate
                a new key pair for asymmetric encryption using the RSA algorithm. */
                 const { privateKey, publicKey } = crypto.generateKeyPairSync('rsa', {
-                    modulusLength: 4069,
+                    modulusLength: 4096,
+                    publicKeyEncoding: {
+                        type: 'pkcs1',
+                        format: 'pem',
+                    },
+                    privateKeyEncoding: {
+                        type: 'pkcs1',
+                        format: 'pem',
+                    },
                 });
 
                 /* This line of code is calling a method `createKeyToken` from the `KeyTokenService`
@@ -47,13 +55,13 @@ class UserService {
                         message: 'Error creating public key',
                     };
                 }
-
-               /* The code snippet `const tokens = await createTokenPair({ userId: newUser._id, email:
+                const publicKeyObject = crypto.createPublicKey(publicKeyString);
+                /* The code snippet `const tokens = await createTokenPair({ userId: newUser._id, email:
                newUser.email }, publicKey, privateKey);` is generating a pair of tokens for the
                newly created user. */
                 const tokens = await createTokenPair(
                     { userId: newUser._id, email: newUser.email },
-                    publicKey,
+                    publicKeyString,
                     privateKey
                 );
                 console.log(tokens);
