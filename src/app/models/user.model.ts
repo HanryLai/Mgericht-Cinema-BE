@@ -57,27 +57,21 @@ export const userSchema: mongoose.Schema<IUser> = new mongoose.Schema(
             ],
             trim: true,
         },
-        role: {
-            type: String,
-            enum: Object.values(Role),
-            default: Role.CUSTOMER,
-            required: false,
-        },
-        cart: {
-            type: mongoose.Types.ObjectId,
-            ref: 'Cart',
-            default: null,
-        },
+        //         role: {
+        //             type: String,
+        //             enum: Object.values(Role),
+        //             default: Role.CUSTOMER,
+        //             required: false,
+        //         },
+        //         cart: {
+        //             type: mongoose.Types.ObjectId,
+        //             ref: 'Cart',
+        //             default: null,
+        //         },
         passwordChangedAt: { type: Date, default: Date.now },
         passwordResetToken: { type: String, default: '' },
         passwordResetExpires: { type: Date },
         isVerified: { type: Boolean, default: false },
-        verificationToken: {
-            type: String,
-            default: null,
-            trim: true,
-            index: { expires: '1.5h' },
-        },
     },
     {
         timestamps: true,
