@@ -5,7 +5,7 @@ import * as jose from 'jose';
 class UserService {
     public static register = async (user: DocumentDefinition<IUser>) => {
         try {
-            const holderUser = await userModel.findOne({ username: user.username, email: user.email }).lean<user>(true);
+            const holderUser = await userModel.findOne({ username: user.username, email: user.email }).lean<IUser>(true);
             if (holderUser) {
                 throw new Error('Username or email is already taken');
             }
