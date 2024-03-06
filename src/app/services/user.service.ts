@@ -6,6 +6,7 @@ import { getErrorMessage } from '../utils/err/errorMessage';
 import { createTokenPair } from '../auth/authUtils';
 
 import * as crypto from 'crypto';
+import { getInfoData } from '../utils/getInfo';
 class UserService {
     public static register = async (user: DocumentDefinition<IUser>) => {
         try {
@@ -68,7 +69,7 @@ class UserService {
                 return {
                     code: 201,
                     metadata: {
-                        user: newUser,
+                        user: getInfoData({ filed: ['username', 'email', 'phone'], object: newUser }),
                         token: tokens,
                     },
                 };
