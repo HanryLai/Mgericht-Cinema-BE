@@ -1,26 +1,21 @@
-import { Model, Schema, model } from 'mongoose';
-import { IUser } from './user.model';
-
-export interface IKeyToken {
-    user: IUser;
-    publicKey: string;
-    refreshToken: string[];
-}
-
-export const keyTokenSchema: Schema<IKeyToken> = new Schema({
-    user: {
-        type: Schema.Types.ObjectId,
-        ref: 'User',
-        required: true,
+import { Schema, model } from 'mongoose';
+export const keyTokenSchema = new Schema(
+    {
+        user: {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+            required: true,
+        },
+        publicKey: {
+            type: String,
+            required: true,
+        },
+        refreshToken: {
+            type: Array,
+            default: [],
+        },
     },
-    publicKey: {
-        type: String,
-        required: true,
-    },
-    refreshToken: {
-        type: [String],
-        default: [],
-    },
-});
+    { collection: 'Keys', timestamps: true }
+);
 
-export const keyModel: Model<IKeyToken> = model('Key', keyTokenSchema);
+export const keyModel = model('Key', keyTokenSchema);
