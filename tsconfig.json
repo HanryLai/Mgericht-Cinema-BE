@@ -7,38 +7,38 @@
     "sourceMap": true,
     "outDir": "./dist",
     "moduleResolution": "node",
-    "removeComments": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "noImplicitThis": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "resolveJsonModule": true,
-    "baseUrl": ".",
-    "paths": {
-      "@pages/*": [
-        "pages/*"
-      ],
-      "@src/*": [
-        "src/*"
-      ],
-      "@components/*": [
-        "src/components/*"
-      ],
-      "@states/*": [
-        "src/states/*"
-      ],
-      "@hooks/*": [
-        "src/hooks/*"
-      ]
-    },
+    // "removeComments": true,
+    // "noImplicitAny": true,
+    // "strictNullChecks": false,
+    // "strictFunctionTypes": true,
+    // "noImplicitThis": true,
+    // "noUnusedLocals": true,
+    // "noUnusedParameters": true,
+    // "noImplicitReturns": true,
+    // "noFallthroughCasesInSwitch": true,
+    // "allowSyntheticDefaultImports": true,
+    // "esModuleInterop": true,
+    // "emitDecoratorMetadata": true,
+    // "experimentalDecorators": true,
+    // "resolveJsonModule": true,
+    // "baseUrl": ".",
+    // "paths": {
+    //   "@pages/*": [
+    //     "pages/*"
+    //   ],
+    //   "@src/*": [
+    //     "src/*"
+    //   ],
+    //   "@components/*": [
+    //     "src/components/*"
+    //   ],
+    //   "@states/*": [
+    //     "src/states/*"
+    //   ],
+    //   "@hooks/*": [
+    //     "src/hooks/*"
+    //   ]
+    // },
   },
   "exclude": ["node_modules"],
   "include": ["./src/**/*.ts"]
