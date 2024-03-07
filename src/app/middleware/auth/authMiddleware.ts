@@ -1,5 +1,5 @@
 import { Response, Request, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
 import {
     HTTP_BAD_REQUEST,
     HTTP_UNAUTHORIZED,
@@ -16,6 +16,7 @@ declare global {
             id?: any;
             token?: any;
             role?: any;
+            
         }
     }
 }
