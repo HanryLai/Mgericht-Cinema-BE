@@ -3,11 +3,10 @@ import { IUser, userModel } from '../models/user.model';
 import * as bcrypt from 'bcrypt';
 import KeyTokenService from './keyToken.service';
 import { getErrorMessage } from '../utils/err/errorMessage';
-import { createTokenPair } from '../auth/authUtils';
-
 import * as crypto from 'crypto';
 import { getInfoData } from '../utils/getInfo';
 import { keyModel } from '../models/token.model';
+import { createTokenPair } from '../middleware/auth/authUtils';
 class UserService {
     public static register = async (user: DocumentDefinition<IUser>) => {
         try {
@@ -57,7 +56,9 @@ class UserService {
                         message: 'Error creating public key',
                     };
                 }
-                const publicKeyObject = crypto.createPublicKey(publicKeyString);
+                // const publicKeyObject = crypto.createPublicKey(publicKeyString);
+
+
                 /* The code snippet `const tokens = await createTokenPair({ userId: newUser._id, email:
                newUser.email }, publicKey, privateKey);` is generating a pair of tokens for the
                newly created user. */
