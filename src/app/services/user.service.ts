@@ -7,6 +7,7 @@ import { createTokenPair } from '../auth/authUtils';
 
 import * as crypto from 'crypto';
 import { getInfoData } from '../utils/getInfo';
+import { keyModel } from '../models/token.model';
 class UserService {
     public static register = async (user: DocumentDefinition<IUser>) => {
         try {
@@ -65,11 +66,24 @@ class UserService {
                     publicKeyString,
                     privateKey
                 );
-                console.log(tokens);
+                console.log('Tokennss::', tokens);
+
+                const createTokenModel = await keyModel.create({
+                    user: newUser._id,
+                    publicKey: publicKeyString,
+                    refreshToken: tokens.refreshToken,
+                });
+
+                if (!createTokenModel) {
+                    return {
+                        status: 500,
+                        message: 'Error creating tokenModel',
+                    };
+                }
                 return {
                     code: 201,
                     metadata: {
-                        user: getInfoData({ filed: ['username', 'email', 'phone'], object: newUser }),
+                        user: getInfoData({ ...newUser }, ['username', 'email', 'phone']),
                         token: tokens,
                     },
                 };
