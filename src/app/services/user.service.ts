@@ -96,6 +96,7 @@ class UserService {
             };
         }
     };
+    public static login = async ({ username, password }) => {};
 }
 
 export default UserService;
